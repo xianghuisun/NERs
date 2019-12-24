@@ -81,6 +81,9 @@ class BiLSTM_CRF:
                     total_loss+=loss_val
                 print("In epoch %d,loss value is %f " %(epoch,total_loss/num_batches))#total_loss/num_batches is average loss value
                 saver.save(sess,self.model_save_path)
+                
+    def test(self,pad_word_id,pad_tag_id,actual_length):
+        
 
 if __name__ == "__main__":
     train_path=r'D:\NER\ner_assigment\NERs\data\train.txt'
