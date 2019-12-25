@@ -118,8 +118,8 @@ class HMM:
             for each_predict_tag,each_golden_tag in zip(predict_tag_list,golden_sentence_label):
                 if each_predict_tag==each_golden_tag:
                     TP_matrix[self.tag2id[each_predict_tag]]+=1
-                TP_FP_matrix[self.tag2id[each_golden_tag]]+=1
-                TP_FN_matrix[self.tag2id[each_predict_tag]]+=1
+                TP_FP_matrix[self.tag2id[each_predict_tag]]+=1
+                TP_FN_matrix[self.tag2id[each_golden_tag]]+=1
         #precision,recall,f1_score=np.zeros(shape=(self.state_nums,)),np.zeros(shape=(self.state_nums,)),np.zeros(shape=(self.state_nums,))
         result_dict={}
         for tag in self.tag2id.keys():
