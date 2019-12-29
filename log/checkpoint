@@ -1,2 +1,2 @@
-model_checkpoint_path: "D:\\NER\\ner_assigment\\NERs\\log\\model.ckpt"
-all_model_checkpoint_paths: "D:\\NER\\ner_assigment\\NERs\\log\\model.ckpt"
+model_checkpoint_path: "/home/xhsun/Documents/assignment/NERs/log/char_model.ckpt"
+all_model_checkpoint_paths: "/home/xhsun/Documents/assignment/NERs/log/char_model.ckpt"
