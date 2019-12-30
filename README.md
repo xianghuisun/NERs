@@ -7,3 +7,5 @@ epochs==50 and use_CRF==True and glove_path==True f1_score==0.648420, correct/to
 epochs==50 and use_CRF==False and no golve_path f1_score==0.63255478, correct/total=0.8984388
 考虑char时
 epoches==50 and use_CRF==True and glove_path==True f1_score==0.6819606,correct/total=0.9239794
+
+观察实验中loss值的变化可以看出在随机初始化的词嵌入时，每一个epoch的loss值都高于经过预训练的glove词向量的情况下的loss值
