@@ -110,20 +110,23 @@ class HMM:
         TP_FP_matrix=np.zeros(shape=(self.state_nums,))
         TP_FN_matrix=np.zeros(shape=(self.state_nums,))
         id2tag={ids:tag for tag,ids in self.tag2id.items()}
-        print(id2tag)
-        print(self.tag2id)
+        correct=0
+        total=0
         for each_test_sentence,golden_sentence_label in zip(test_sentence,test_sentence_label):
             best_path=self.viterbi_decode(each_test_sentence)
             predict_tag_list=[id2tag[id_] for id_ in best_path]
             for each_predict_tag,each_golden_tag in zip(predict_tag_list,golden_sentence_label):
                 if each_predict_tag==each_golden_tag:
                     TP_matrix[self.tag2id[each_predict_tag]]+=1
+                    correct+=1
+                total+=1
                 TP_FP_matrix[self.tag2id[each_predict_tag]]+=1
                 TP_FN_matrix[self.tag2id[each_golden_tag]]+=1
         #precision,recall,f1_score=np.zeros(shape=(self.state_nums,)),np.zeros(shape=(self.state_nums,)),np.zeros(shape=(self.state_nums,))
         result_dict={}
         for tag in self.tag2id.keys():
             result_dict[tag]={'precision':0.0,'recall':0.0,'f1_score':0.0}
+        f1_score_avg=0.0
         for i in range(self.state_nums):
             tag=id2tag[i]
             result_dict[tag]['precision']=TP_matrix[i]/TP_FP_matrix[i]
@@ -131,32 +134,29 @@ class HMM:
             precision=result_dict[tag]['precision']
             recall=result_dict[tag]['recall']
             result_dict[tag]['f1_score']=2*precision*recall/(precision+recall)
+            f1_score_avg+=result_dict[tag]['f1_score']
         
-        print(result_dict)      
         
-        sum_f1_score=0.0
+        print("correct / total is ",correct/total)
+        print("Average f1_score is ",f1_score_avg/self.state_nums)
         for tag in self.tag2id.keys():
-            sum_f1_score+=result_dict[tag]['f1_score']
-        return sum_f1_score/self.state_nums
-        
+            print(tag+"/"+str(result_dict[tag]["f1_score"]))
+
+                
 
 if __name__ == "__main__":
-    train_file=r'D:\NER\ner_code\data\train.txt'
-    test_file=r'D:\NER\ner_code\data\test.txt'
+    train_file='/home/xhsun/Documents/assignment/NERs/data/train.txt'
+    test_file='/home/xhsun/Documents/assignment/NERs/data/test.txt'
     sentence,sentence_label=read_file(train_file)
     word2id,tag2id=get_word_tag_2id(sentence,sentence_label)
     hmm=HMM(len(word2id),len(tag2id),word2id,tag2id)
     hmm.init_parameter(sentence,sentence_label,word2id,tag2id)
-    
     my_id2tag={i:tag for tag,i in tag2id.items()}
-    print(my_id2tag)
-    my_test_sentence="China and American has a bad relationship Allen Iverson and Michael jordan are famous basketball".split()
+    my_test_sentence="Allen Iverson and Michael jordan are famous basketballer in American".split()
     best_path_22=hmm.viterbi_decode(my_test_sentence)
     for word,id_predict in zip(my_test_sentence,best_path_22):
         print(word+"/"+my_id2tag[id_predict])
     
-    test_sentence,test_sentence_label=read_file(test_file)
-    f1_score=hmm.metric_calculation(test_sentence,test_sentence_label)
-    print("-"*100)
-    print(f1_score)
+
+
     

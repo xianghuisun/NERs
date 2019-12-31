@@ -5,3 +5,6 @@ epochs==50 and use_CRF==True and glove_path==True f1_score==0.648420, correct/to
 epochs==50 and use_CRF==False and no golve_path f1_score==0.63255478, correct/total=0.8984388
 考虑char时
 epoches==50 and use_CRF==True and glove_path==True f1_score==0.6819606,correct/total=0.9239794
+
+![](/home/xhsun/Documents/assignment/NERs/log/BiLSTM_CNN_CRF.png)
+

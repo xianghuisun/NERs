@@ -13,29 +13,30 @@ gpu_config.gpu_options.allow_growth=True
     
 
 class Config:
-    def __init__(self,num_tags):
+    def __init__(self):
         self.batch_size=64
         self.max_seq_len=125
         self.max_word_len=20
         self.embedding_dim=100
         self.hidden_dim=128
-        self.num_tags=num_tags
         self.char_embedding_dim=30
         
         
 
 class Char_NER:
-    def __init__(self,config):
+    def __init__(self,config,tag2id):
         self.batch_size=config.batch_size
         self.max_seq_len=config.max_seq_len
         self.max_word_len=config.max_word_len
         self.embedding_dim=100
         self.char_hidden_dim=25
         self.hidden_dim=config.hidden_dim
-        self.num_tags=config.num_tags
+        self.num_tags=len(tag2id)
         self.char_embedding_dim=config.char_embedding_dim
         self.model_save_path="/home/sun_xh/ner_code/assignment_final/log/char_model.ckpt"
         self.use_crf=True
+        self.use_cnn=True
+        self.filter_size=5
         tf.reset_default_graph()
     
     def placeholder_op(self):
@@ -52,6 +53,21 @@ class Char_NER:
         print(self.char_embeddings.shape)
         print('-'*100)
     
+    def char_cnn_layer(self):
+        assert self.char_embeddings.shape==(self.batch_size,self.max_seq_len,self.max_word_len,self.char_embedding_dim)
+        cnn_inputs=tf.reshape(tensor=self.char_embeddings,shape=[self.batch_size*self.max_seq_len,self.max_word_len,self.char_embedding_dim])
+        cnn_inputs=tf.expand_dims(input=cnn_inputs,axis=1)
+        assert cnn_inputs.shape==(self.batch_size*self.max_seq_len,1,self.max_word_len,self.char_embedding_dim)
+        #由于是对字符层面的字符嵌入向量卷积，所以其它维度如batch_size,max_seq_len,是不要改动的，注意到tf中卷积的输入需要是四维的
+        #第一维是数据的批次，第二维是长，第三维是高，第四维是通道数
+        weights_cnn=tf.Variable(tf.random_normal(shape=[1,self.filter_size,self.char_embedding_dim,self.char_hidden_dim*2]))
+        cnn_out=tf.nn.conv2d(cnn_inputs,weights_cnn,strides=[1,1,1,1],padding="VALID")
+        assert cnn_out.shape==(self.batch_size*self.max_seq_len,1,self.max_word_len-self.filter_size+1,self.char_hidden_dim*2)
+        pool_=tf.nn.max_pool(value=tf.tanh(cnn_out),ksize=[1,1,self.max_word_len-self.filter_size+1,1],strides=[1,1,1,1],padding="VALID")
+        assert pool_.shape==(self.max_seq_len*self.batch_size,1,1,self.char_hidden_dim*2)
+        char_outputs=tf.reshape(tensor=pool_,shape=[self.batch_size,self.max_seq_len,self.char_hidden_dim*2])
+        self.char_outputs_concat=tf.nn.dropout(char_outputs,keep_prob=0.5)
+        
     def char_bilstm_layer(self):
         char_cell_fw=tf.contrib.rnn.BasicLSTMCell(num_units=self.char_hidden_dim)
         char_cell_bw=tf.contrib.rnn.BasicLSTMCell(num_units=self.char_hidden_dim)
@@ -105,6 +121,7 @@ class Char_NER:
                 assert mask.shape==(self.batch_size,self.max_length)#mask是一个这样的矩阵，每一行长度为max_length，每个位置为True或者false,取决于当前句子的长度
                 boolean_mask=tf.boolean_mask(losses,mask)#len(boolean_mask)==这batch_size个句子的每一个句子的真实长度之和
                 self.loss=tf.reduce_mean(boolean_mask)
+            self.train_op=tf.train.AdamOptimizer(0.001).minimize(self.loss)
         else:
             assert train_test=="test"
             if self.use_crf==True:
@@ -114,12 +131,15 @@ class Char_NER:
                 argmax_logits=tf.argmax(self.logits,axis=-1)#type(argmax_logits)==tf.int64
                 self.predict_index=tf.cast(argmax_logits,dtype=tf.int32)
         
-        self.train_op=tf.train.AdamOptimizer(0.001).minimize(self.loss)
+        
     
     def build_graph(self,embedding_matrix,char_embedding_matrix,train_test="train"):
         self.placeholder_op()
         self.embedding_op(embedding_matrix,char_embedding_matrix)
-        self.char_bilstm_layer()
+        if self.use_cnn:
+            self.char_cnn_layer()
+        else:
+            self.char_bilstm_layer()
         self.BiLSTM_layer()
         self.project_layer()
         self.loss_layer(train_test)
@@ -224,7 +244,7 @@ def train_model(train_path,store_path,con):
     with open(store_path,'wb') as f:
         pickle.dump(data,f)
         
-    model=Char_NER(config=con)
+    model=Char_NER(config=con,tag2id=tag2id)
     model.build_graph(word_matrix,char_matrix,train_test="train")
     model.train(pad_word,pad_tag,pad_char,actual_length)
     print("Model has been trained over!")
@@ -235,7 +255,7 @@ def test_model(test_path,store_path,con):
     sentences,sentences_label=read_file(test_path)
     word_sens_id, tag_sens_id, char_sens_id=sentence_to_id(sentences,sentences_label,word2id,tag2id,char2id)
     pad_word, pad_tag, pad_char, actual_length=pad_data(word_sens_id,tag_sens_id,char_sens_id,con.max_seq_len,con.max_word_len)
-    model=Char_NER(config=con)
+    model=Char_NER(config=con,tag2id=tag2id)
     model.build_graph(embedding_matrix=word_embedding_matrix,char_embedding_matrix=char_embedding_matrix,train_test="test")
     model.test(pad_word,pad_tag,pad_char,actual_length,tag2id)
     
@@ -243,7 +263,7 @@ if __name__ == "__main__":
     train_path='/home/sun_xh/ner_code/data/train.txt'
     test_path='/home/sun_xh/ner_code/data/test.txt'
     store_path='/home/sun_xh/ner_code/data/char_parameter.pkl'
-    con=Config(num_tags=len(tag2id))
+    con=Config()
     train_model(train_path,store_path,con)
     test_model(test_path,store_path,con)
     
