@@ -151,11 +151,12 @@ if __name__ == "__main__":
     word2id,tag2id=get_word_tag_2id(sentence,sentence_label)
     hmm=HMM(len(word2id),len(tag2id),word2id,tag2id)
     hmm.init_parameter(sentence,sentence_label,word2id,tag2id)
-    my_id2tag={i:tag for tag,i in tag2id.items()}
-    my_test_sentence="Allen Iverson and Michael jordan are famous basketballer in American".split()
-    best_path_22=hmm.viterbi_decode(my_test_sentence)
-    for word,id_predict in zip(my_test_sentence,best_path_22):
-        print(word+"/"+my_id2tag[id_predict])
+    print(hmm.A)
+    # my_id2tag={i:tag for tag,i in tag2id.items()}
+    # my_test_sentence="Allen Iverson and Michael jordan are famous basketballer in American".split()
+    # best_path_22=hmm.viterbi_decode(my_test_sentence)
+    # for word,id_predict in zip(my_test_sentence,best_path_22):
+    #     print(word+"/"+my_id2tag[id_predict])
     
 
 
