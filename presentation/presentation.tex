@@ -220,10 +220,15 @@
 \frontmatter
 \renewcommand{\thepage}{\arabic{page}} %从正文开始页号显示为阿拉伯数字
 
-
+\pagestyle{plain}
+\title{命名实体识别的基本方法介绍及实现}
+\author{孙相会}
+\date{1971654}
+\maketitle
 
 \setcounter{page}{1}
-\chapter{\sanhao\hei \quad 关于命名实体识别的一些基本方法}
+\newpage
+
 \begin{center}
    
     {\textbf{\sihao\hei \quad 一\quad 摘要}}
@@ -232,8 +237,26 @@
 最近通过阅读一些经典顶会论文，对命名实体识别的一些基本方法有了一个大致的了解。本文主
 要介绍了一些在命名实体识别方向上的一些基本的同时也是非常典型的方法，包括隐马尔
 科夫模型(HMM)和条件随机场(CRF)，
-以及基于深度学习的一些神经网络架构如双向长短期记忆循环神经网络(BiLSTM)，以及用卷积神经网络(CNN)来提取字符层面的特征后联合
-词嵌入送进BiLSTM这一架构。
+以及基于深度学习的一些神经网络架构如双向长短期记忆循环神经网络(BiLSTM)，以及用
+卷积神经网络(CNN)或者BiLSTM来提取字符层面的特征后联合
+预训练的词向量送进BiLSTM这一架构。
+
+\begin{table}[htp]
+   \centering
+   \begin{tabular}{|l|c|c|}
+      \hline
+      模型架构&correct/total&f1值 \\ \hline
+      HMM&0.895079&0.6140245 \\ \hline
+      BiLSTM&0.89199903&0.62274653 \\ \hline
+      BiLSTM-CRF&0.9028061168&0.63009822302 \\ \hline
+      BiLSTM-CRF(glove)&0.896527549&0.63349347 \\ \hline
+      BiLSTM-CNN-CRF(glove)&0.9190669149&0.67904301964 \\ \hline
+      BiLSTM-BiLSTM-CRF(glove)&0.9554123&0.81911336 \\ \hline 
+
+      
+   \end{tabular}
+   
+\end{table}
 
 {\bfseries 关键词}：HMM；CRF；BiLSTM；CNN
 \newpage
@@ -247,6 +270,15 @@
 如图所示，B-ORG代表的是一个单词，它是一个组织名的开头。
 B-PER代表的是一个单词，它是人名的开头，I-PER则代表人名结尾。
 o代表其它类型单词，也就是这个单词既不是组织名，也不是地点名同时也不是人名。
+
+
+我用的数据集是最经典的CoNLL2003命名实体识别数据集，共有九种标签。
+\begin{figure}[htp]
+   \centering
+   \includegraphics[scale=0.8]{tags.png}
+   
+\end{figure}
+
 
 \newpage
 \chapter{\sihao\hei 三\quad 模型简介}
@@ -281,8 +313,50 @@ P(y_1,y_2,\cdots, y_n)=P(y_1)p(y_2|y_1)p(y_3|y_2)\cdots P(y_n|y_{n-1})
 \end{enumerate}
 
 在HMM中$P(x_i|y_i)$也叫发射概率，意思是在标签为$y_i$的时候，单词$x_i$出现的概率，显然这可以通过训练数据
-求出来。$P(y_i|y_{i-1})$也加转移概率，指的是当前单词被标记为$y_{i-1}$，而它的下一个单词被标记为$y_i$的概率。这两个
+求出来。$P(y_i|y_{i-1})$也叫转移概率，指的是当前单词被标记为$y_{i-1}$，而它的下一个单词被标记为$y_i$的概率。这两个
 概率都可以通过遍历训练数据集中每一个句子以此来统计相应的频数，用频率来代替概率。
+
+从而$P(y_1,y_2,\cdots, y_n|x_1,x_2,\cdots,x_n)$就可以写成$P(x_1|y_1)p(y_1)p(x_2|y_2)p(y_2|y_1)\cdots P(x_n|y_n)P(y_n|y_{n-1})$，
+HMM有三个概率矩阵，用$A,B,pi$来表示。这三个矩阵分别记录着状态转移概
+率，发射概率以及初始概率。如下图1和图2所示。
+
+\begin{figure}[htp]
+   \centering
+   \includegraphics[scale=0.5]{A.png}
+   \caption{状态概率转移矩阵}
+\end{figure}
+这就是每一个标签转移到下一个标签的概率，例如从I-PER转移到O的概率是0.943921。
+\begin{figure}[htp]
+   \centering
+   \includegraphics[scale=0.6]{pi.png}
+   \caption{初始概率转移矩阵}
+\end{figure}
+这就是每一种标签的初始概率，例如所有句子的第一个单词是O的概率是0.5791372。
+发射概率矩阵比较大就不给出图了，$B[i][j]$的意思就是j这个单词被标记为标签i的概率。
+HMM的预测问题通常利用$viterbi$算法，核心思想是最优路径如果通过节点$v_i$，那么从初始节点$v_0$到节点$v_{i-1}$的路径也一定是最优路径。
+根据这一思想，就可以不必穷举所有可能的路径再找出概率最大的路径了。只需要从前向后，每一步都是找概率最大的路径上的节点，那么这个节点一定在最优路径上。
+
+现在假设给出这样的句子"Allen Iverson and Michael Jordan are famous basketballer in American"。
+首先在发射概率矩阵中找到单词Allen被标记为这九种标签的概率，
+分别乘以对应的九种标签的初始概率，
+同理找到单词Iverson在发射概率矩阵中的九种概率，用前面的Allen的九种概率分别乘以九种状态转移概率。
+例如以I-PER为第一个标签，那么Allen的九种概率分别乘以对应的转移到I-PER的概率(假设Allen被标记为B-PER的概率乘以A[B-PER][I-PER]大于
+Allen其他标签的概率乘以相应的转移到I-PER的概率，那么就认为Iverson被标记为I-PER的情况下是从Allen被标记为B-PER转移过来的)，
+还有其余的九种情况也都要计算出来。由此可见，从第一个单词到第二个单词之间有九种路径，同理
+第二个单词到第三个单词也有九种可能的路径(可见如果不是$viterbi$算法的思想，那么每两个单词之间就有81种路径)。
+以此类推到最后一个单词American，假设算得American被标记为O的概率最大，而且是从前一个单词in被标记为O的情况
+下转移过来的，那么就认为American被标记为O，O就是最优路径上的最后一个节点，前一个节点也是O，以此从后向前推，
+就得到了最优路径。下图就是结果
+\begin{figure}[htp]
+   \centering
+   \includegraphics[scale=1.2]{print.png}
+   
+\end{figure}
+
+
+{\bfseries 神经网络模型}
+
+最常用的用于序列标注任务的神经网络架构就是BiLSTM-CRF。
 
 
 \end{document}
