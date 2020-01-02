@@ -356,7 +356,14 @@ Allen其他标签的概率乘以相应的转移到I-PER的概率，那么就认�
 
 {\bfseries 神经网络模型}
 
-最常用的用于序列标注任务的神经网络架构就是BiLSTM-CRF。
+最常用的用于序列标注任务的神经网络架构就是BiLSTM-CRF。事实上BiLSTM已经可以很好的建模输出的标签和输入的单词之间的关系，
+但是在序列标注问题中，输出的标签之间是有一定关系约束的，例如B-PER后面接I-LOC就很不合理，仅用softmax层分类不会考虑到这种约束关系，
+而CRF用了一个状态概率转移矩阵可以很好的解决这个问题。
+\begin{figure}[htp]
+   \centering
+   \includegraphics[scale=0.5]{trans_matrix.png}
+   
+\end{figure}
 
 
 \end{document}

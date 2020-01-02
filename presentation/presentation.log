@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.14159265-2.6-0.99998 (TeX Live 2017/Debian) (preloaded format=xelatex 2019.12.9)  2 JAN 2020 11:03
+This is XeTeX, Version 3.14159265-2.6-0.99998 (TeX Live 2017/Debian) (preloaded format=xelatex 2019.12.9)  2 JAN 2020 11:19
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1613,7 +1613,14 @@ File: pi.png Graphic file (type bmp)
 ] [4]
 File: print.png Graphic file (type bmp)
 <print.png>
- [5] (./presentation.aux)
+File: trans_matrix.png Graphic file (type bmp)
+<trans_matrix.png>
+
+Overfull \hbox (264.27695pt too wide) in paragraph at lines 364--365
+ [][] 
+ []
+
+[5] [6] (./presentation.aux)
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.41063pt have occurred.
@@ -1621,12 +1628,12 @@ LaTeX Font Warning: Size substitutions with differences
  )
 (\end occurred when \ifx on line 161 was incomplete) 
 Here is how much of TeX's memory you used:
- 25655 strings out of 493007
- 519149 string characters out of 6136719
+ 25659 strings out of 493007
+ 519226 string characters out of 6136719
  558244 words of memory out of 5000000
- 29323 multiletter control sequences out of 15000+600000
+ 29326 multiletter control sequences out of 15000+600000
  543118 words of font info for 92 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
  57i,8n,74p,10501b,383s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on presentation.pdf (6 pages).
+Output written on presentation.pdf (7 pages).
