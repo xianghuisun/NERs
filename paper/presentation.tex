@@ -23,6 +23,7 @@
 \usepackage{cite}%产生如(文[2,4-8])的效果
 \usepackage{multirow}
 %\usepackage{amsthm}
+\usepackage{url}
 \usepackage{CJK}
 \usepackage{epstopdf}
 \usepackage{listings} %新加入的宏包，用于附录插入代码
@@ -240,23 +241,8 @@
 以及基于深度学习的一些神经网络架构如双向长短期记忆循环神经网络(BiLSTM)，以及用
 卷积神经网络(CNN)或者BiLSTM来提取字符层面的特征后联合
 预训练的词向量送进BiLSTM这一架构。
+实验的数据和代码放在\url{https://github.com/xianghuisun/NERs}
 
-\begin{table}[htp]
-   \centering
-   \begin{tabular}{|l|c|c|}
-      \hline
-      模型架构&correct/total&f1值 \\ \hline
-      HMM&0.895079&0.6140245 \\ \hline
-      BiLSTM&0.89199903&0.62274653 \\ \hline
-      BiLSTM-CRF&0.9028061168&0.63009822302 \\ \hline
-      BiLSTM-CRF(glove)&0.896527549&0.63349347 \\ \hline
-      BiLSTM-CNN-CRF(glove)&0.9190669149&0.67904301964 \\ \hline
-      BiLSTM-BiLSTM-CRF(glove)&0.9554123&0.81911336 \\ \hline 
-
-      
-   \end{tabular}
-   
-\end{table}
 
 {\bfseries 关键词}：HMM；CRF；BiLSTM；CNN
 \newpage
@@ -359,11 +345,73 @@ Allen其他标签的概率乘以相应的转移到I-PER的概率，那么就认�
 最常用的用于序列标注任务的神经网络架构就是BiLSTM-CRF。事实上BiLSTM已经可以很好的建模输出的标签和输入的单词之间的关系，
 但是在序列标注问题中，输出的标签之间是有一定关系约束的，例如B-PER后面接I-LOC就很不合理，仅用softmax层分类不会考虑到这种约束关系，
 而CRF用了一个状态概率转移矩阵可以很好的解决这个问题。
-\begin{figure}[htp]
+\begin{figure}[H]
    \centering
    \includegraphics[scale=0.5]{trans_matrix.png}
-   
+   \caption{训练后的CRF概率转移矩阵}
 \end{figure}
+从图中可以看到，矩阵中的数据值不代表概率，但是可以明显的看出来B-LOC转移到I-LOC的值是2.774562，
+B-MISC转移到I-MISC的值是2.326010，而B-LOC转移到I-MISC的值是-3.054955，B-MISC转移到I-LOC的
+值是-4.079100.这说明了CRF的概率转移矩阵学习到了输出层面上各个标签的转移概率之间的关系。
+下表就是所有模型的结果汇总。
+
+\begin{table}[htp]
+   \centering
+   \begin{tabular}{|l|c|c|}
+      \hline
+      模型架构&correct/total&f1值 \\ \hline
+      HMM&0.895079&0.6140245 \\ \hline
+      BiLSTM&0.89199903&0.62274653 \\ \hline
+      BiLSTM-CRF&0.9028061168&0.63009822302 \\ \hline
+      BiLSTM-CRF(glove)&0.896527549&0.63349347 \\ \hline
+      BiLSTM-CNN-CRF(glove)&0.9190669149&0.67904301964 \\ \hline
+      BiLSTM-BiLSTM-CRF(glove)&0.9554123&0.81911336 \\ \hline 
+
+      
+   \end{tabular}
+   \caption{模型结果汇总}
+\end{table}
+BiLSTM 就是仅用BiLSTM和softmax分类层。BiLSTM-CRF意思就是输出层分类用的是CRF。
+后面带有的glove的意思是利用了glove预训练词向量，没有的就代表嵌入矩阵是随机初始化的。
+BiLSTM-CNN-CRF意思是考虑到了字符层面的表示，用CNN来提取字符层面的特征，BiLSTM-BiLSTM-CRF就是先用一层BiLSTM
+来提取字符层面的特征，然后联合预训练的词向量再送进BiLSTM内。
+correct/total 的意思是统计了所有的预测正确的标签数量/所有的标签的数量，
+f1值就是根据定义由精确率和召回率所计算的。
+
+可以看到最好的结果来自于模型结构为BiLSTM-BiLSTM-CRF(glove)模型，
+f1值达到0.81911336，当然f1值的计算是我根据定义自己写的计算方法，可能有误，但是就算有误，其他模型的架构也是同样的方法计算
+f1值，因此仍然可以说明BiLSTM-BiLSTM-CRF(glove)这种模型的结果是优于其它的模型。
+
+\begin{thebibliography}{99}
+
+   \bibitem{k0}
+   \newblock Neural Architectures for Named Entity Recognition
+
+   \bibitem{k1}
+   \newblock Bidirectional LSTM-CRF Models for Sequence Tagging
+
+   \bibitem{k2}
+   \newblock End-to-end Sequence Labeling via Bidirectional LSTM-CNNs-CRF
+
+   \bibitem{k3}
+   \newblock Named Entity Recognition with Bidirectional LSTM-CNNs
+
+   \bibitem{k4}
+   \newblock A Survey on Deep Learning for Named Entity Recognition
+
+   \bibitem{k5}
+   \newblock 李航
+   \newblock 统计学习方法
+
+   
+   
+   
+   
+   
+   
+   
+   \end{thebibliography}
+
 
 
 \end{document}

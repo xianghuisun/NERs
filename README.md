@@ -11,3 +11,5 @@ char_data_process.py是在考虑字符层面的表示下处理字符的代码，
 
 BiLSTM-CRF.py和BiLSTM-CNN-CRF.py可以直接运行，要想调整模型的架构比如说不用CRF或者不用CNN只需要修改里面的参数即可。各个模型的结果在论文中已经给出这里不再给出图片了。
 
+paper文件夹包含写的论文，以及各种模型运行后的结果。论文是用latex排版，源码在presentation.tex文件中。需要有LaTeX环境才能编译，presentation.pdf就是论文。
+
