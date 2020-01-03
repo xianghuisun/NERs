@@ -14,5 +14,5 @@ BiLSTM-CRF.py和BiLSTM-CNN-CRF.py可以直接运行，要想调整模型的架�
 paper文件夹包含写的论文，以及各种模型运行后的结果。论文是用latex排版，源码在presentation.tex文件中。需要有LaTeX环境才能编译，presentation.pdf就是论文。
 下面就是各个模型的结果，在报告中已经给出
 
-![](/home/xhsun/Documents/assignment/NERs/paper/result.png)
+![](https://github.com/xianghuisun/NERs/tree/master/paper/result.png)
 
